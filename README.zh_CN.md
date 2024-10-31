@@ -22,7 +22,7 @@ Language: [English](README.md)
 
 1. 从本项目的发布页面下载编译好的程序
 
-2. 在命令行或PowerShell中运行FanControl.exe程序
+2. 在命令行或PowerShell中运行lenovo-fan-control程序
 
 运行程序后，如果控制台输出`Failed to open \\.\EnergyDrv`，说明联想驱动没有安装或未正常运行。如果输出`FAST mode on`则说明风扇已开启高速运行模式。如果输出`NORMAL mode on`说明风扇恢复正常转速运行模式。
 
