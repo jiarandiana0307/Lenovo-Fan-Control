@@ -22,7 +22,7 @@ However, this project is not a perfect solution for fan control. It can only con
 
 1. Download binary from release
 
-2. Run FanControl.exe in Command Line Prompt or PowerShell
+2. Run the lenovo-fan-control program in Command Line Prompt or PowerShell
 
 If the console presents `Failed to open \\.\EnergyDrv`, it means the Lenovo driver not found or dosen't work. If `FAST mode on`, it means the fan is spnning at highest speed. If it shows `NORMAL mode on`, it means the fan is spnning at normal speed.
 
