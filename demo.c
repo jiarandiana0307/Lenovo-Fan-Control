@@ -3,17 +3,18 @@
 
 int main() {
     int mode = read_state();
-    if (mode == -1) {
-        printf("Failed to open \\\\.\\EnergyDrv\n");
-        return 1;
-    }
-
-    if (mode == NORMAL) {
-        printf("FAST mode on\n");
-        keep_fast(-1);
-    } else {
-        printf("NORMAL mode on\n");
-        fan_control(NORMAL);
+    switch (mode) {
+        case -1:
+            printf("Failed to open \\\\.\\EnergyDrv\n");
+            break;
+        case NORMAL:
+            printf("FAST mode on\n");
+            keep_fast(-1);
+            break;
+        case FAST:
+            printf("NORMAL mode on\n");
+            fan_control(NORMAL);
+            break;
     }
     printf("Press Enter to exit...");
     getchar();
