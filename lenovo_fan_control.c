@@ -33,6 +33,8 @@ enum HotKeyIDs {
 
 typedef struct {
     LPCWSTR app_name;
+    LPCWSTR note;
+    LPCWSTR program_is_running;
     LPCWSTR failed_to_open_driver;
     LPCWSTR state;
     LPCWSTR menu_running;
@@ -46,6 +48,8 @@ typedef struct {
 
 const LangResources en_US = {
     TEXT("Lenovo Fan Control"),
+    TEXT("Note"),
+    TEXT("The program is running."),
     TEXT("Failed to open \\\\.\\EnergyDrv. Unsupported device or something wrong with Lenovo ACPI-Compliant Virtual Power Controller driver."),
     TEXT("State"),
     TEXT("Running"),
@@ -62,6 +66,8 @@ Disclaimer: This program is not responsible for possible damage of any kind, use
 
 const LangResources zh_CN = {
     TEXT("联想风扇控制"),
+    TEXT("提示"),
+    TEXT("程序已经在运行中。"),
     TEXT("无法访问\\\\.\\EnergyDrv。本设备不支持或Lenovo ACPI-Compliant Virtual Power Controller驱动异常。"),
     TEXT("状态"),
     TEXT("正在运行"),
@@ -109,11 +115,6 @@ void stop_fan() {
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_CREATE: {
-            LANGID system_lang = GetSystemDefaultLangID();
-            if (PRIMARYLANGID(system_lang) == LANG_CHINESE) {
-                lang = &zh_CN;
-            }
-
             nid.cbSize = sizeof(NOTIFYICONDATA);
             nid.hWnd = hwnd;
             nid.uID = ID_TRAY_APP_ICON;
@@ -197,8 +198,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    LANGID system_lang = GetUserDefaultLangID();
+    if (PRIMARYLANGID(system_lang) == LANG_CHINESE) {
+        lang = &zh_CN;
+    }
+
+    HANDLE hMutex = CreateMutex(NULL, TRUE, TEXT("LenovoFanControlMutex"));
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(hMutex);
+        MessageBox(NULL, lang->program_is_running, TEXT("提示"), MB_OK | MB_ICONINFORMATION);
+        return 0;
+    }
+
     if (read_state() == -1) {
         MessageBox(NULL, lang->failed_to_open_driver, lang->app_name, MB_ICONEXCLAMATION | MB_OK);
+        return 0;
     }
     WNDCLASSEX wc = {0};
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -228,5 +242,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     UnregisterHotKey(hwnd, HOTKEY_START);
     UnregisterHotKey(hwnd, HOTKEY_STOP);
+
+    if (hMutex) {
+        ReleaseMutex(hMutex);
+        CloseHandle(hMutex);
+    }
     return msg.wParam;
 }
