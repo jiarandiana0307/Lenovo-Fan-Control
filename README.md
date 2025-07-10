@@ -26,7 +26,7 @@ If a message box saying `Failed to open\\.\EnergyDrv` popped up, it means the Le
 
 Click the program icon in the system tray, a menu will show up. The first line of the menu tell you the state of the fan, which could be `Running`, which means the fan is spinning at maximum speed, or `Stopped`, which means the fan is spinning at normal speed.
 
-You can click the `Start` and `Stop` item on the menu, or use corresponding hotkeys `Ctrl+Alt+R` and `Ctrl+Alt+S` to switch the fan between maximum speed and normal speed.
+You can click the `Start` and `Stop` item on the menu, or use corresponding hotkeys `Ctrl+Alt+F11` and `Ctrl+Alt+F12` to switch the fan between maximum speed and normal speed.
 
 Finally, you can click the `Exit` item on the menu to terminate the program, then the fan will spin at normal speed.
 

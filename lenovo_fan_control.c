@@ -50,8 +50,8 @@ const LangResources en_US = {
     TEXT("State"),
     TEXT("Running"),
     TEXT("Stopped"),
-    TEXT("Start\tCtrl+Alt+R"),
-    TEXT("Stop\tCtrl+Alt+S"),
+    TEXT("Start\tCtrl+Alt+F11"),
+    TEXT("Stop\tCtrl+Alt+F12"),
     TEXT("About"),
     TEXT("Exit"),
     TEXT("Lenovo Fan Control " VERSION "\n\n\
@@ -66,8 +66,8 @@ const LangResources zh_CN = {
     TEXT("状态"),
     TEXT("正在运行"),
     TEXT("未运行"),
-    TEXT("启动\tCtrl+Alt+R"),
-    TEXT("停止\tCtrl+Alt+S"),
+    TEXT("启动\tCtrl+Alt+F11"),
+    TEXT("停止\tCtrl+Alt+F12"),
     TEXT("关于"),
     TEXT("退出"),
     TEXT("联想风扇控制 " VERSION "\n\n\
@@ -217,8 +217,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
 
-    RegisterHotKey(hwnd, HOTKEY_START, MOD_CONTROL | MOD_ALT, 'R');
-    RegisterHotKey(hwnd, HOTKEY_STOP, MOD_CONTROL | MOD_ALT, 'S');
+    RegisterHotKey(hwnd, HOTKEY_START, MOD_CONTROL | MOD_ALT, VK_F11);
+    RegisterHotKey(hwnd, HOTKEY_STOP, MOD_CONTROL | MOD_ALT, VK_F12);
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0) > 0) {
