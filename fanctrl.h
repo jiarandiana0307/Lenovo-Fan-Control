@@ -8,11 +8,21 @@
 #ifndef LENOVO_FAN_CONTROL_H
 #define LENOVO_FAN_CONTROL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+/**
+ * Set this variable to 0 to terminate keep_fan_running()
+ */
+volatile extern int is_keep_fan_running;
+
 /**
  * Possible fan spinning mode.
  *
  * NORMAL: Fan spins at normal speed.
- * FAST: Fan spins at the highest speed.
+ * FAST: Fan spins at maximum speed.
  */
 enum FanMode { NORMAL, FAST };
 
@@ -21,7 +31,7 @@ enum FanMode { NORMAL, FAST };
  *
  * @param mode: Set the fan spinning mode:
  *      NORMAL  Spin at normal speed.
- *      FAST    Spin at the highest speed.
+ *      FAST    Spin at maximum speed.
  * @return Operating result:
  *      -1  Failed to access \\.\EnergyDrv device.
  *      1   Succeeded.
@@ -34,20 +44,21 @@ int fan_control(enum FanMode mode);
  * @return The current status of the fan:
  *      -1      Failed to access \\.\EnergyDrv device.
  *      NORMAL  Spin at normal speed.
- *      FAST    Spin at the highest speed.
+ *      FAST    Spin at maximum speed.
  */
 enum FanMode read_state();
 
 /**
- * Try to keep the fan in fast mode for a specific period of time or forever. 
- * Block until done.
+ * Try to keep the fan in fast mode. 
+ * Block until done. Or set "is_keep_fan_running" variable to 0 to terminate.
  * 
  * For more information, refer to:
  * https://github.com/Soberia/Lenovo-IdeaPad-Z500-Fan-Controller?tab=readme-ov-file#-about
- *
- * @param duration: Keep the fan spinning at the highest speed for the specified time, 
- *      in milliseconds. If nagetive value is given, then keep the fan spinning indefinitely.
  */
-void keep_fast(int duration);
+void keep_fan_running();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
