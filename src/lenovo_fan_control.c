@@ -11,7 +11,7 @@
 #include <tchar.h>
 
 #include "fanctrl.h"
-#include "resource.h"
+#include "../res/resource.h"
 
 #define WM_TRAYICON (WM_USER + 1)
 
@@ -89,7 +89,7 @@ HMENU hMenu;
 pthread_t keep_fan_running_thread;
 
 void* keep_fan_running_func(void *arg) {
-    keep_fan_running(-1);
+    keep_fan_running();
 }
 
 void start_fan() {
