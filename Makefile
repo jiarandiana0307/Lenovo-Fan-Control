@@ -9,8 +9,6 @@ OUT_x86 = ${BIN_DIR}/${BINARY_PREFIX}-x86.exe
 source_files = ${SRC_DIR}/lenovo_fan_control.c ${SRC_DIR}/fanctrl.c ${SRC_DIR}/fanctrl.h
 res_files = ${RES_DIR}/icon.ico ${RES_DIR}/icon.rc ${RES_DIR}/resource.h
 
-ICON_BIN = ${BIN_DIR}/icon-x64.o
-
 all: ${OUT_x64} ${OUT_x86}
 x64: ${OUT_x64}
 x86: ${OUT_x86}
