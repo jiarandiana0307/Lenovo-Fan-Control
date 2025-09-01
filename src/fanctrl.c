@@ -8,11 +8,13 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include <Windows.h>
 
 #include "fanctrl.h"
 
 volatile int is_keep_fan_running = 0;
+volatile int is_keep_fan_speed_low = 0;
 
 static int NORMAL_MODE_EXPECTED_VALUE = -1;
 
@@ -57,6 +59,7 @@ enum FanMode read_state() {
 }
 
 void keep_fan_running() {
+    is_keep_fan_speed_low = 0;
     is_keep_fan_running = 1;
     const int interval = 9000; // ms, fine-tuned, see https://www.allstone.lt/ideafan/
     while (is_keep_fan_running) {
@@ -82,3 +85,16 @@ void keep_fan_running() {
     fan_control(NORMAL);
 }
 
+void keep_fan_speed_low() {
+    is_keep_fan_running = 0;
+    is_keep_fan_speed_low = 1;
+    const int TOTAL_SLEEP_TIME = 5000; // ms
+    const int CHECK_STATUS_INTERVAL = 1000; // ms
+    const int CHECK_STATUS_COUNT = ceil((double)TOTAL_SLEEP_TIME / CHECK_STATUS_INTERVAL);
+    while (is_keep_fan_speed_low) {
+        fan_control(NORMAL);
+        for (int i = 0; i < CHECK_STATUS_COUNT && is_keep_fan_speed_low; ++i) {
+            Sleep(CHECK_STATUS_INTERVAL);
+        }
+    }
+}

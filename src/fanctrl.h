@@ -19,6 +19,11 @@ extern "C" {
 volatile extern int is_keep_fan_running;
 
 /**
+ * Set this variable to 0 to terminate keep_fan_speed_low()
+ */
+volatile extern int is_keep_fan_speed_low;
+
+/**
  * Possible fan spinning mode.
  *
  * NORMAL: Fan spins at normal speed.
@@ -56,6 +61,15 @@ enum FanMode read_state();
  * https://github.com/Soberia/Lenovo-IdeaPad-Z500-Fan-Controller?tab=readme-ov-file#-about
  */
 void keep_fan_running();
+
+/**
+ * Try to keep the fan spinning at the lowest speed.
+ * Block until done. Or set "is_keep_fan_speed_low" variable to 0 to terminate.
+ * 
+ * Note: Use this function with caution, as it may cause hardware damage from
+ * high temperatures.
+ */
+void keep_fan_speed_low();
 
 #ifdef __cplusplus
 }

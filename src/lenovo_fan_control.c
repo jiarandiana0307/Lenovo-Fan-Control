@@ -15,20 +15,22 @@
 
 #define WM_TRAYICON (WM_USER + 1)
 
-#define VERSION "v0.2"
+#define VERSION "v0.3"
 
 enum TrayMenuIDs {
     ID_TRAY_APP_ICON = 1001,
     ID_TRAY_STATE,
-    ID_TRAY_START,
-    ID_TRAY_STOP,
+    ID_TRAY_LOW_SPEED,
+    ID_TRAY_HIGH_SPEED,
+    ID_TRAY_NORMAL_SPEED,
     ID_TRAY_ABOUT,
     ID_TRAY_EXIT,
 };
 
 enum HotKeyIDs {
-    HOTKEY_START,
-    HOTKEY_STOP
+    HOTKEY_LOW_SPEED,
+    HOTKEY_HIGH_SPEED,
+    HOTKEY_NORMAL_SPEED,
 };
 
 typedef struct {
@@ -37,10 +39,12 @@ typedef struct {
     LPCWSTR program_is_running;
     LPCWSTR failed_to_open_driver;
     LPCWSTR state;
-    LPCWSTR menu_running;
-    LPCWSTR menu_stopped;
-    LPCWSTR menu_start;
-    LPCWSTR menu_stop;
+    LPCWSTR menu_at_low_speed;
+    LPCWSTR menu_at_high_speed;
+    LPCWSTR menu_at_normal_speed;
+    LPCWSTR menu_low_speed;
+    LPCWSTR menu_high_speed;
+    LPCWSTR menu_normal_speed;
     LPCWSTR menu_about;
     LPCWSTR menu_exit;
     LPCWSTR about_text;
@@ -52,10 +56,12 @@ const LangResources en_US = {
     TEXT("The program is running."),
     TEXT("Failed to open \\\\.\\EnergyDrv. Unsupported device or something wrong with Lenovo ACPI-Compliant Virtual Power Controller driver."),
     TEXT("State"),
-    TEXT("Running"),
-    TEXT("Stopped"),
-    TEXT("Start\tCtrl+Alt+F11"),
-    TEXT("Stop\tCtrl+Alt+F12"),
+    TEXT("Low Speed"),
+    TEXT("High Speed"),
+    TEXT("Normal Speed"),
+    TEXT("Low Speed\tCtrl+Alt+F10"),
+    TEXT("High Speed\tCtrl+Alt+F11"),
+    TEXT("Normal Speed\tCtrl+Alt+F12"),
     TEXT("About"),
     TEXT("Exit"),
     TEXT("Lenovo Fan Control " VERSION "\n\n\
@@ -70,10 +76,12 @@ const LangResources zh_CN = {
     TEXT("程序已经在运行中。"),
     TEXT("无法访问\\\\.\\EnergyDrv。本设备不支持或Lenovo ACPI-Compliant Virtual Power Controller驱动异常。"),
     TEXT("状态"),
-    TEXT("正在运行"),
-    TEXT("未运行"),
-    TEXT("启动\tCtrl+Alt+F11"),
-    TEXT("停止\tCtrl+Alt+F12"),
+    TEXT("低转速"),
+    TEXT("高转速"),
+    TEXT("正常转速"),
+    TEXT("低转速\tCtrl+Alt+F10"),
+    TEXT("高转速\tCtrl+Alt+F11"),
+    TEXT("正常转速\tCtrl+Alt+F12"),
     TEXT("关于"),
     TEXT("退出"),
     TEXT("联想风扇控制 " VERSION "\n\n\
@@ -86,29 +94,45 @@ const LangResources* lang = &en_US;
 
 NOTIFYICONDATA nid;
 HMENU hMenu;
+pthread_t keep_fan_speed_low_thread;
 pthread_t keep_fan_running_thread;
+
+void* keep_fan_speed_low_func(void *arg) {
+    keep_fan_speed_low();
+}
 
 void* keep_fan_running_func(void *arg) {
     keep_fan_running();
 }
 
-void start_fan() {
-    ModifyMenu(hMenu, ID_TRAY_STATE, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_running);
-    if (!is_keep_fan_running) {
-        pthread_create(&keep_fan_running_thread, NULL, keep_fan_running_func, NULL);
+void toggle_fan_low_speed() {
+    ModifyMenu(hMenu, ID_TRAY_STATE, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_at_low_speed);
+    if (!is_keep_fan_speed_low) {
+        pthread_create(&keep_fan_speed_low_thread, NULL, keep_fan_speed_low_func, NULL);
     }
-    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_running);
+    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_low_speed);
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
-void stop_fan() {
-    ModifyMenu(hMenu, ID_TRAY_STATE, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_stopped);
+void toggle_fan_high_speed() {
+    ModifyMenu(hMenu, ID_TRAY_STATE, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_at_high_speed);
+    if (!is_keep_fan_running) {
+        pthread_create(&keep_fan_running_thread, NULL, keep_fan_running_func, NULL);
+    }
+    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_high_speed);
+    Shell_NotifyIcon(NIM_MODIFY, &nid);
+}
+
+void toggle_fan_normal_speed() {
+    ModifyMenu(hMenu, ID_TRAY_STATE, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_at_normal_speed);
     if (is_keep_fan_running) {
         is_keep_fan_running = 0;
-    } else {
-        fan_control(NORMAL);
     }
-    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_stopped);
+    if (is_keep_fan_speed_low) {
+        is_keep_fan_speed_low = 0;
+    }
+    fan_control(NORMAL);
+    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_normal_speed);
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
@@ -125,16 +149,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             Shell_NotifyIcon(NIM_ADD, &nid);
 
             hMenu = CreatePopupMenu();
-            AppendMenu(hMenu, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_running);
+            AppendMenu(hMenu, MF_STRING | MF_DISABLED, ID_TRAY_STATE, lang->menu_at_high_speed);
             AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_START, lang->menu_start);
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_STOP, lang->menu_stop);
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_LOW_SPEED, lang->menu_low_speed);
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_HIGH_SPEED, lang->menu_high_speed);
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_NORMAL_SPEED, lang->menu_normal_speed);
             AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
             AppendMenu(hMenu, MF_STRING, ID_TRAY_ABOUT, lang->menu_about);
             AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
             AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, lang->menu_exit);
 
-            start_fan();
+            toggle_fan_high_speed();
             break;
         }
 
@@ -157,12 +182,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     DestroyWindow(hwnd);
                     break;
 
-                case ID_TRAY_START:
-                    start_fan();
+                case ID_TRAY_LOW_SPEED:
+                    toggle_fan_low_speed();
                     break;
 
-                case ID_TRAY_STOP:
-                    stop_fan();
+                case ID_TRAY_HIGH_SPEED:
+                    toggle_fan_high_speed();
+                    break;
+
+                case ID_TRAY_NORMAL_SPEED:
+                    toggle_fan_normal_speed();
                     break;
 
                 case ID_TRAY_ABOUT:
@@ -174,12 +203,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
         case WM_HOTKEY:
             switch (wParam) {
-                case HOTKEY_START:
-                    start_fan();
+                case HOTKEY_LOW_SPEED:
+                    toggle_fan_low_speed();
                     break;
 
-                case HOTKEY_STOP:
-                    stop_fan();
+                case HOTKEY_HIGH_SPEED:
+                    toggle_fan_high_speed();
+                    break;
+
+                case HOTKEY_NORMAL_SPEED:
+                    toggle_fan_normal_speed();
                     break;
             }
             break;
@@ -231,8 +264,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
 
-    RegisterHotKey(hwnd, HOTKEY_START, MOD_CONTROL | MOD_ALT, VK_F11);
-    RegisterHotKey(hwnd, HOTKEY_STOP, MOD_CONTROL | MOD_ALT, VK_F12);
+    RegisterHotKey(hwnd, HOTKEY_LOW_SPEED, MOD_CONTROL | MOD_ALT, VK_F10);
+    RegisterHotKey(hwnd, HOTKEY_HIGH_SPEED, MOD_CONTROL | MOD_ALT, VK_F11);
+    RegisterHotKey(hwnd, HOTKEY_NORMAL_SPEED, MOD_CONTROL | MOD_ALT, VK_F12);
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0) > 0) {
@@ -240,8 +274,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         DispatchMessage(&msg);
     }
 
-    UnregisterHotKey(hwnd, HOTKEY_START);
-    UnregisterHotKey(hwnd, HOTKEY_STOP);
+    UnregisterHotKey(hwnd, HOTKEY_LOW_SPEED);
+    UnregisterHotKey(hwnd, HOTKEY_HIGH_SPEED);
+    UnregisterHotKey(hwnd, HOTKEY_NORMAL_SPEED);
 
     if (hMutex) {
         ReleaseMutex(hMutex);

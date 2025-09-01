@@ -19,7 +19,7 @@ x86: ${OUT_x86}
 ${OUT_x64}: ${source_files} ${BIN_DIR}/icon-x64.o
 	gcc -static -m64 -o ${OUT_x64} ${source_files} ${BIN_DIR}/icon-x64.o -lpthread -mwindows
 
-${BIN_DIR}/icon-x64.o: ${res_files}
+${BIN_DIR}/icon-x64.o: ${res_files} ${BIN_DIR}
 	windres -F pe-x86-64 -i ${RES_DIR}/icon.rc -o ${BIN_DIR}/icon-x64.o
 
 # x86
@@ -28,10 +28,13 @@ ${BIN_DIR}/icon-x64.o: ${res_files}
 ${OUT_x86}: ${source_files} ${BIN_DIR}/icon-x86.o
 	gcc -static -m32 -o ${OUT_x86} ${source_files} ${BIN_DIR}/icon-x86.o -lpthread -mwindows
 
-${BIN_DIR}/icon-x86.o: ${res_files}
+${BIN_DIR}/icon-x86.o: ${res_files} ${BIN_DIR}
 	windres -F pe-i386 -i ${RES_DIR}/icon.rc -o ${BIN_DIR}/icon-x86.o
 
 #########################################################
+
+${BIN_DIR}:
+	MKDIR "${BIN_DIR}"
 
 clean_all: clean
 	del ${BIN_DIR}\*.exe

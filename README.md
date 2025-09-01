@@ -24,11 +24,19 @@ However, this project is not a perfect solution for fan control. It can only con
 
 If a message box saying `Failed to open\\.\EnergyDrv` popped up, it means the Lenovo driver not found or dosen't work as expected. Otherwise, the program works fine and the fan will spin at maximum speed.
 
-Click the program icon in the system tray, a menu will show up. The first line of the menu tell you the state of the fan, which could be `Running`, which means the fan is spinning at maximum speed, or `Stopped`, which means the fan is spinning at normal speed.
+![Menu Screenshot](github/menu-screenshot.jpg)
 
-You can click the `Start` and `Stop` item on the menu, or use corresponding hotkeys `Ctrl+Alt+F11` and `Ctrl+Alt+F12` to switch the fan between maximum speed and normal speed.
+Click the program icon in the system tray, a menu will show up. The first line of the menu tell you the state of the fan, which could be one of the three: 
+
+1. `Low Speed`: the fan is spinning at minimum speed.
+2. `High Speed`: the fan is spinning at maximum speed.
+3. `Normal Speed`: the fan is spinning at normal speed.
+
+You can click the `Low Speed` and `High Speed` item on the menu, or use the corresponding hotkeys `Ctrl+Alt+F10` and `Ctrl+Alt+F11` to keep the fan spinning at minimun and maximum speed respectively. Also, you can click the `Normal Speed` item on the menu or use the corresponding hotkey `Ctrl+Alt+F12` to return the fan to its normal speed.
 
 Finally, you can click the `Exit` item on the menu to terminate the program, then the fan will spin at normal speed.
+
+**Note:** Use the `Low Speed` mode with caution. Because this program does not have temperature monitoring, using the `Low Speed` mode can easily lead to high hardware temperatures, which can lead to hardware damage.
 
 # Theory
 
