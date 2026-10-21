@@ -116,7 +116,7 @@ void toggle_fan_low_speed() {
     if (!is_keep_fan_speed_low) {
         pthread_create(&keep_fan_speed_low_thread, NULL, keep_fan_speed_low_func, NULL);
     }
-    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_low_speed);
+    _sntprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_low_speed);
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
@@ -125,7 +125,7 @@ void toggle_fan_high_speed() {
     if (!is_keep_fan_running) {
         pthread_create(&keep_fan_running_thread, NULL, keep_fan_running_func, NULL);
     }
-    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_high_speed);
+    _sntprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_high_speed);
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
@@ -138,7 +138,7 @@ void toggle_fan_normal_speed() {
         is_keep_fan_speed_low = 0;
     }
     fan_control(NORMAL);
-    _stprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_normal_speed);
+    _sntprintf(nid.szTip, 64, TEXT("%s " VERSION "\n%s: %s"), lang->app_name, lang->state, lang->menu_at_normal_speed);
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
